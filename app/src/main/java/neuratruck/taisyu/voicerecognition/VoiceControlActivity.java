@@ -13,6 +13,11 @@ import android.widget.Button;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.UUID;
+import android.speech.RecognitionListener;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import android.Manifest;
 
 public class VoiceControlActivity extends Activity {
     private BluetoothAdapter bluetoothAdapter;
@@ -27,9 +32,13 @@ public class VoiceControlActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_control);
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, YOUR_REQUEST_CODE);
+        }
+
         // Bluetoothアダプタとデバイスの設定
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        m5StackDevice = bluetoothAdapter.getRemoteDevice("M5Stack_MAC_Address");
+        m5StackDevice = bluetoothAdapter.getRemoteDevice("B8:F0:09:C5:24:FE");
 
         // Bluetoothソケットの設定
         try {
@@ -43,6 +52,7 @@ public class VoiceControlActivity extends Activity {
 
         // 音声認識の設定
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        speechRecognizer.setRecognitionListener(recognitionListener);
 
         // ボタンの設定
         btnControl = findViewById(R.id.btnControl);
@@ -72,7 +82,7 @@ public class VoiceControlActivity extends Activity {
 
     private final RecognitionListener recognitionListener = new RecognitionListener() {
         @Override
-        public void onResults(Bundle results) {
+        public void onReadyForSpeech(Bundle results) {
             ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             if (matches != null) {
                 String command = matches.get(0);
@@ -83,5 +93,31 @@ public class VoiceControlActivity extends Activity {
         }
 
         // その他のオーバーライドメソッド
+        @Override
+        public void onBeginningOfSpeech() {}
+
+        @Override
+        public void onRmsChanged(float rmsdB) {}
+
+        @Override
+        public void onBufferReceived(byte[] buffer) {}
+
+        @Override
+        public void onEndOfSpeech() {}
+
+        @Override
+        public void onError(int error) {}
+
+        @Override
+        public void onResults(Bundle results) {
+            // 既存の実装をここに移動
+        }
+
+        @Override
+        public void onPartialResults(Bundle partialResults) {}
+
+        @Override
+        public void onEvent(int eventType, Bundle params) {}
     };
+    private static final int YOUR_REQUEST_CODE = 1; // または他の任意の整数
 }
