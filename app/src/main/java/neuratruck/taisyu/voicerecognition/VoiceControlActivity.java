@@ -122,7 +122,6 @@ public class VoiceControlActivity extends Activity {
             Log.d("VoiceControlActivity", "Error occurred: " + error);
         }
 
-
         @Override
         public void onResults(Bundle results) {
             Log.d("VoiceControlActivity", "onResults called");
