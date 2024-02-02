@@ -1,3 +1,4 @@
+/*
 package neuratruck.taisyu.voicerecognition;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
@@ -157,3 +158,5 @@ public class JoystickControlActivity extends Activity{
 
     private static final int YOUR_REQUEST_CODE = 1; // または他の任意の整数
 }
+
+ */

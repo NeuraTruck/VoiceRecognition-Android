@@ -8,8 +8,11 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -18,6 +21,8 @@ import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.Manifest;
+import androidx.annotation.NonNull; // NonNull アノテーションのインポート
+
 
 public class VoiceControlActivity extends Activity {
     private BluetoothAdapter bluetoothAdapter;
@@ -31,9 +36,14 @@ public class VoiceControlActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_control);
+        textViewResult = findViewById(R.id.textViewResult);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, YOUR_REQUEST_CODE);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, YOUR_AUDIO_PERMISSION_REQUEST_CODE);
         }
 
         // Bluetoothアダプタとデバイスの設定
@@ -59,12 +69,14 @@ public class VoiceControlActivity extends Activity {
         btnControl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("VoiceControl", "Button clicked, starting voice recognition...");
                 startVoiceRecognition();
             }
         });
     }
 
     private void startVoiceRecognition() {
+        Log.d("VoiceControlActivity", "startVoiceRecognition called");
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         speechRecognizer.startListening(intent);
@@ -106,11 +118,23 @@ public class VoiceControlActivity extends Activity {
         public void onEndOfSpeech() {}
 
         @Override
-        public void onError(int error) {}
+        public void onError(int error) {
+            Log.d("VoiceControlActivity", "Error occurred: " + error);
+        }
+
 
         @Override
         public void onResults(Bundle results) {
-            // 既存の実装をここに移動
+            Log.d("VoiceControlActivity", "onResults called");
+            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if (matches != null && !matches.isEmpty()) {
+                String command = matches.get(0); // 最も信頼度の高い結果を取得
+                if ("Go".equalsIgnoreCase(command) || "Stop".equalsIgnoreCase(command)) {
+                    textViewResult.setText(command); // 結果をTextViewに表示
+                } else {
+                    textViewResult.setText(""); // 認識された単語が条件に一致しない場合は何も表示しない
+                }
+            }
         }
 
         @Override
@@ -119,5 +143,27 @@ public class VoiceControlActivity extends Activity {
         @Override
         public void onEvent(int eventType, Bundle params) {}
     };
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_AUDIO_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // パーミッションが付与された場合の処理
+                // ここでは特に何もしない（スタートボタンが表示されている状態を維持）
+            } else {
+                // パーミッションが拒否された場合の処理
+                // ユーザーにメッセージを表示した後、アプリを終了する
+                Toast.makeText(this, "音声録音のパーミッションが必要です。", Toast.LENGTH_SHORT).show();
+                finish(); // アプリを終了
+            }
+        }
+    }
+
     private static final int YOUR_REQUEST_CODE = 1; // または他の任意の整数
+    private static final int YOUR_AUDIO_PERMISSION_REQUEST_CODE = 1;
+
+    private static final int REQUEST_AUDIO_PERMISSION_CODE = 1;
+    private TextView textViewResult;
+
 }
