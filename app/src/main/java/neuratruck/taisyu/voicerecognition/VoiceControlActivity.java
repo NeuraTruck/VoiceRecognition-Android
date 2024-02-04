@@ -146,15 +146,37 @@ public class VoiceControlActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_AUDIO_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // パーミッションが付与された場合の処理
-                // ここでは特に何もしない（スタートボタンが表示されている状態を維持）
+        switch (requestCode) {
+            case REQUEST_RECORD_AUDIO_PERMISSION:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // パーミッションが付与された場合の処理
+                } else {
+                    // パーミッションが拒否された場合の処理
+                    // 例えば、機能の使用を制限したり、ユーザーに説明を表示するなど
+                    Toast.makeText(this, "音声録音のパーミッションが必要です。", Toast.LENGTH_SHORT).show();
+                    finish(); // アプリを終了
+                }
+                break;
+        }
+    }
+
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
+
+    public void requestRecordAudioPermission() {
+        // パーミッションが既に付与されているかを確認
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // パーミッションの説明が必要かどうかを確認
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.RECORD_AUDIO)) {
+                // ユーザーにパーミッションの必要性を説明するカスタムUIを表示（任意）
             } else {
-                // パーミッションが拒否された場合の処理
-                // ユーザーにメッセージを表示した後、アプリを終了する
-                Toast.makeText(this, "音声録音のパーミッションが必要です。", Toast.LENGTH_SHORT).show();
-                finish(); // アプリを終了
+                // パーミッションの要求
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.RECORD_AUDIO},
+                        REQUEST_RECORD_AUDIO_PERMISSION);
             }
         }
     }
