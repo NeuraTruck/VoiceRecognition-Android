@@ -162,29 +162,9 @@ public class VoiceControlActivity extends Activity {
 
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
 
-    public void requestRecordAudioPermission() {
-        // パーミッションが既に付与されているかを確認
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // パーミッションの説明が必要かどうかを確認
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.RECORD_AUDIO)) {
-                // ユーザーにパーミッションの必要性を説明するカスタムUIを表示（任意）
-            } else {
-                // パーミッションの要求
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.RECORD_AUDIO},
-                        REQUEST_RECORD_AUDIO_PERMISSION);
-            }
-        }
-    }
-
     private static final int YOUR_REQUEST_CODE = 1; // または他の任意の整数
     private static final int YOUR_AUDIO_PERMISSION_REQUEST_CODE = 1;
 
-    private static final int REQUEST_AUDIO_PERMISSION_CODE = 1;
     private TextView textViewResult;
 
 }
