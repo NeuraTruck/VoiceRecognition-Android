@@ -37,7 +37,11 @@ public class VoiceControlActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_control);
         textViewResult = findViewById(R.id.textViewResult);
-
+        if (textViewResult == null) {
+            Log.d("VoiceControlActivity", "textViewResult is null");
+        } else {
+            Log.d("VoiceControlActivity", "textViewResult is not null");
+        }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, YOUR_REQUEST_CODE);
         }
@@ -65,7 +69,7 @@ public class VoiceControlActivity extends Activity {
         speechRecognizer.setRecognitionListener(recognitionListener);
 
         // ボタンの設定
-        btnControl = findViewById(R.id.btnControl);
+        btnControl = findViewById(R.id.btnStart);
         btnControl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -77,8 +81,10 @@ public class VoiceControlActivity extends Activity {
 
     private void startVoiceRecognition() {
         Log.d("VoiceControlActivity", "startVoiceRecognition called");
+
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+
         speechRecognizer.startListening(intent);
     }
 
@@ -119,20 +125,36 @@ public class VoiceControlActivity extends Activity {
 
         @Override
         public void onError(int error) {
-            Log.d("VoiceControlActivity", "Error occurred: " + error);
-        }
+            Log.d("VoiceRecognition", "Error occurred: " + error);
+            if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
+                // 音声認識を再開
+                startVoiceRecognition();
+            }        }
 
         @Override
         public void onResults(Bundle results) {
-            Log.d("VoiceControlActivity", "onResults called");
             ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             if (matches != null && !matches.isEmpty()) {
+                // 結果の取得と表示
+                final String resultText = matches.get(0); // 最も確信度が高い結果を取得
+                Log.d("VoiceControlActivity", "Recognized Text: " + resultText);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (textViewResult != null) {
+                            textViewResult.setText(resultText);
+                        }
+                    }
+                });
+/*
                 String command = matches.get(0); // 最も信頼度の高い結果を取得
                 if ("Go".equalsIgnoreCase(command) || "Stop".equalsIgnoreCase(command)) {
                     textViewResult.setText(command); // 結果をTextViewに表示
                 } else {
                     textViewResult.setText(""); // 認識された単語が条件に一致しない場合は何も表示しない
                 }
+*/
             }
         }
 
