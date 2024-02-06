@@ -89,26 +89,34 @@ public class VoiceControlActivity extends Activity {
     }
 
     private void sendCommandViaBluetooth(String command) {
-        String convertedCommand = convertVoiceCommandToNumber(command); // 音声コマンドを数字に変換
+        Log.d("VoiceControlActivity", "Sending command via Bluetooth: " + command);
+
+        String convertedCommand = convertVoiceCommandToNumber(command) + "\n"; // 音声コマンドを数字に変換
         try {
             if (outputStream != null) {
 //                String commandWithNewLine = command + "\n"; // 改行文字を追加
 //                outputStream.write(commandWithNewLine.getBytes());
                 outputStream.write(convertedCommand.getBytes()); // 数字を文字列として送信
+                Log.d("VoiceControlActivity", "Command sent: " + convertedCommand); // 送信成功時のログ出力
             }
         } catch (Exception e) {
+            Log.e("VoiceControlActivity", "Error sending command: ", e); // 送信失敗時のログ出力
             e.printStackTrace();
         }
     }
 
     private String convertVoiceCommandToNumber(String voiceCommand) {
-        switch (voiceCommand) {
-            case "Go":
+        switch (voiceCommand.toLowerCase()) {
+            case "go":
                 return "1";
-            case "Stop":
+            case "stop":
                 return "2";
-            case "Back":
+            case "back":
                 return "3";
+            case "turn right":
+                return "4";
+            case "turn left":
+                return "5";
             default:
                 return null; // 未知のコマンドの場合はnullを返す
         }
@@ -171,6 +179,8 @@ public class VoiceControlActivity extends Activity {
                     textViewResult.setText(""); // 認識された単語が条件に一致しない場合は何も表示しない
                 }
 */
+                Log.d("VoiceControlActivity", "Calling sendCommandViaBluetooth with: " + resultText);
+                sendCommandViaBluetooth(resultText);
             }
         }
 
